@@ -193,10 +193,27 @@ class nginxCtl:
                                 )
         output, err = p.communicate()
         print output, err
-        if not err:
-            return True
-        else:
+        if err:
             return False
+        return True
+
+    def reload_config_nginx(self):
+        """
+        Ensure there is no syntax errors are reported.
+        The 'nginx -s reload' command is used for this.
+        """
+        p = subprocess.Popen(
+            "sudo nginx -s reload",
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            shell=True
+            )
+        
+        output, err = p.communicate()
+        print err
+        if err:
+            return False
+        return True
 
 
     def configtest_nginx(self):
