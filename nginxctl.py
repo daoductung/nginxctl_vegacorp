@@ -121,12 +121,14 @@ class nginxCtl:
         """
         Start nginx service if pid and socket file do not exist.
         """
+        error_log = None
         nginx_conf_path = self.get_nginx_conf()
         nginx_lock_path = self.get_nginx_lock()
         if os.path.exists(nginx_lock_path):
-            print "nginx is already running... Nothing to be done!"
+            error_log = "nginx is already running... Nothing to be done!"
+            return False, error_log
         else:
-            cmd = "nginx -c " + nginx_conf_path
+            cmd = "sudo nginx -c " + nginx_conf_path
             p = subprocess.Popen(cmd,
                                  stdout=subprocess.PIPE,
                                  stderr=subprocess.PIPE,
@@ -140,13 +142,15 @@ class nginxCtl:
                     bcolors.OKGREEN,
                     bcolors.ENDC
                     )
-            else:
-                print err
+                return True, error_log
+            error_log = err
+        return False, error_log
 
     def stop_nginx(self):
         """
         Stop nginx service.
         """
+        error_log = None
         nginx_pid_path = self.get_nginx_pid()
         nginx_lock_path = self.get_nginx_lock()
         if os.path.exists(nginx_pid_path):
@@ -163,8 +167,10 @@ class nginxCtl:
                 pid, err = p.communicate()
             except IOError:
                 print "Cannot open nginx pid file"
+                error_log = "Cannot open nginx pid file"
+                return False, error_log
             if pid:
-                cmd = "nginx -s quit"
+                cmd = "sudo nginx -s quit"
                 p = subprocess.Popen(cmd,
                                      stdout=subprocess.PIPE,
                                      stderr=subprocess.PIPE,
@@ -178,8 +184,9 @@ class nginxCtl:
                         bcolors.OKGREEN,
                         bcolors.ENDC
                         )
-                else:
-                    print err
+                    return True, error_log
+                error_log = err
+        return False, error_log
 
     def reload_nginx(self):
         """
@@ -194,8 +201,8 @@ class nginxCtl:
         output, err = p.communicate()
         print output, err
         if err:
-            return False
-        return True
+            return False, err
+        return True, None
 
     def reload_config_nginx(self):
         """
@@ -212,8 +219,8 @@ class nginxCtl:
         output, err = p.communicate()
         print err
         if err:
-            return False
-        return True
+            return False, err
+        return True, None
 
 
     def configtest_nginx(self):
@@ -234,8 +241,14 @@ class nginxCtl:
         """
         Restart nginx service. Stop and Start nginx functions are used.
         """
-        self.stop_nginx()
-        self.start_nginx()
+        mess, err = self.stop_nginx()
+        if err:
+            return False, err
+        mess, err = self.start_nginx()
+        if err:
+            return False, err
+        return True, None
+        
 
     def full_status(self):
         """
