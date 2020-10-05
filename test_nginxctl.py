@@ -12,6 +12,7 @@ class nginxCtlTests(unittest.TestCase):
         n = nginxctl.nginxCtl()
         self.assertEqual(n._strip_line(test_str), result_test_str)
 
+
     @mock.patch('nginxctl.nginxCtl.get_conf_parameters')
     def test_nginx_conf(self, conf_param):
         n = nginxctl.nginxCtl()
@@ -56,10 +57,23 @@ class nginxCtlTests(unittest.TestCase):
         self.assertEqual(['8080', '[::]:80'], ip_port)
         vhost_file.close()
 
+    #Unit test reload nginx
     def test_reload_nginx(self):
         n = nginxctl.nginxCtl()
         state_reload = n.reload_nginx()
         self.assertTrue(state_reload, "Reload nginx susscess")
+
+    #Unit test reload config ngix
+    def test_reload_config_nginx(self):
+        n = nginxctl.nginxCtl()
+        state_reload_config = n.reload_config_nginx()
+        self.assertTrue(state_reload_config)
+
+    #Test version nginx
+    def test_version_nginx(self):
+        n = nginxctl.nginxCtl()
+        result_version = 'nginx version: nginx/1.18.0 (Ubuntu)\n'
+        self.assertEqual(n.get_version(), result_version)
 
 if __name__ == '__main__':
     unittest.main()
